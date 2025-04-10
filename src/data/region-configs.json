@@ -1,0 +1,173 @@
+[
+  {
+    "regionCode": "NA",
+    "configType": "content_restrictions",
+    "configData": {
+      "minimumAge": 18,
+      "contentRating": ["G", "PG", "PG-13", "R"],
+      "restrictedCategories": ["violence", "adult"],
+      "parentalControls": true
+    },
+    "description": "Content restriction settings for North America",
+    "active": true
+  },
+  {
+    "regionCode": "NA",
+    "configType": "streaming_quality",
+    "configData": {
+      "defaultQuality": "HD",
+      "availableQualities": ["SD", "HD", "FHD", "UHD"],
+      "autoAdjust": true,
+      "bitrateThresholds": {
+        "SD": 2000000,
+        "HD": 5000000,
+        "FHD": 8000000,
+        "UHD": 16000000
+      }
+    },
+    "description": "Streaming quality settings for North America",
+    "active": true
+  },
+  {
+    "regionCode": "SA",
+    "configType": "content_restrictions",
+    "configData": {
+      "minimumAge": 16,
+      "contentRating": ["G", "PG", "PG-13", "R"],
+      "restrictedCategories": ["violence", "adult"],
+      "parentalControls": true
+    },
+    "description": "Content restriction settings for South America",
+    "active": true
+  },
+  {
+    "regionCode": "SA",
+    "configType": "streaming_quality",
+    "configData": {
+      "defaultQuality": "SD",
+      "availableQualities": ["SD", "HD", "FHD"],
+      "autoAdjust": true,
+      "bitrateThresholds": {
+        "SD": 1500000,
+        "HD": 4000000,
+        "FHD": 7000000
+      }
+    },
+    "description": "Streaming quality settings for South America",
+    "active": true
+  },
+  {
+    "regionCode": "EU",
+    "configType": "content_restrictions",
+    "configData": {
+      "minimumAge": 16,
+      "contentRating": ["G", "PG", "PG-13", "R"],
+      "restrictedCategories": ["violence", "adult"],
+      "parentalControls": true,
+      "gdprCompliance": true
+    },
+    "description": "Content restriction settings for Europe",
+    "active": true
+  },
+  {
+    "regionCode": "EU",
+    "configType": "streaming_quality",
+    "configData": {
+      "defaultQuality": "HD",
+      "availableQualities": ["SD", "HD", "FHD", "UHD"],
+      "autoAdjust": true,
+      "bitrateThresholds": {
+        "SD": 2000000,
+        "HD": 5000000,
+        "FHD": 8000000,
+        "UHD": 16000000
+      }
+    },
+    "description": "Streaming quality settings for Europe",
+    "active": true
+  },
+  {
+    "regionCode": "AS",
+    "configType": "content_restrictions",
+    "configData": {
+      "minimumAge": 18,
+      "contentRating": ["G", "PG", "PG-13"],
+      "restrictedCategories": ["violence", "adult", "political"],
+      "parentalControls": true
+    },
+    "description": "Content restriction settings for Asia",
+    "active": true
+  },
+  {
+    "regionCode": "AS",
+    "configType": "streaming_quality",
+    "configData": {
+      "defaultQuality": "SD",
+      "availableQualities": ["SD", "HD", "FHD"],
+      "autoAdjust": true,
+      "bitrateThresholds": {
+        "SD": 1500000,
+        "HD": 4000000,
+        "FHD": 7000000
+      }
+    },
+    "description": "Streaming quality settings for Asia",
+    "active": true
+  },
+  {
+    "regionCode": "AF",
+    "configType": "content_restrictions",
+    "configData": {
+      "minimumAge": 18,
+      "contentRating": ["G", "PG", "PG-13"],
+      "restrictedCategories": ["violence", "adult"],
+      "parentalControls": true
+    },
+    "description": "Content restriction settings for Africa",
+    "active": true
+  },
+  {
+    "regionCode": "AF",
+    "configType": "streaming_quality",
+    "configData": {
+      "defaultQuality": "SD",
+      "availableQualities": ["SD", "HD"],
+      "autoAdjust": true,
+      "bitrateThresholds": {
+        "SD": 1000000,
+        "HD": 3000000
+      }
+    },
+    "description": "Streaming quality settings for Africa",
+    "active": true
+  },
+  {
+    "regionCode": "OC",
+    "configType": "content_restrictions",
+    "configData": {
+      "minimumAge": 15,
+      "contentRating": ["G", "PG", "M", "MA15+", "R18+"],
+      "restrictedCategories": ["violence", "adult"],
+      "parentalControls": true
+    },
+    "description": "Content restriction settings for Oceania",
+    "active": true
+  },
+  {
+    "regionCode": "OC",
+    "configType": "streaming_quality",
+    "configData": {
+      "defaultQuality": "HD",
+      "availableQualities": ["SD", "HD", "FHD", "UHD"],
+      "autoAdjust": true,
+      "bitrateThresholds": {
+        "SD": 2000000,
+        "HD": 5000000,
+        "FHD": 8000000,
+        "UHD": 16000000
+      }
+    },
+    "description": "Streaming quality settings for Oceania",
+    "active": true
+  }
+]

@@ -1,0 +1,291 @@
+[
+  {
+    "name": "United States",
+    "code": "US",
+    "regionCode": "NA",
+    "capital": "Washington, D.C.",
+    "currency": {
+      "code": "USD",
+      "name": "United States Dollar",
+      "symbol": "$"
+    },
+    "languages": ["English"],
+    "population": 331002651,
+    "area": 9833517,
+    "flag": "🇺🇸",
+    "timezone": "UTC-5 to UTC-10",
+    "active": true
+  },
+  {
+    "name": "Canada",
+    "code": "CA",
+    "regionCode": "NA",
+    "capital": "Ottawa",
+    "currency": {
+      "code": "CAD",
+      "name": "Canadian Dollar",
+      "symbol": "$"
+    },
+    "languages": ["English", "French"],
+    "population": 37742154,
+    "area": 9984670,
+    "flag": "🇨🇦",
+    "timezone": "UTC-3.5 to UTC-8",
+    "active": true
+  },
+  {
+    "name": "Mexico",
+    "code": "MX",
+    "regionCode": "NA",
+    "capital": "Mexico City",
+    "currency": {
+      "code": "MXN",
+      "name": "Mexican Peso",
+      "symbol": "$"
+    },
+    "languages": ["Spanish"],
+    "population": 128932753,
+    "area": 1964375,
+    "flag": "🇲🇽",
+    "timezone": "UTC-6 to UTC-8",
+    "active": true
+  },
+  {
+    "name": "Brazil",
+    "code": "BR",
+    "regionCode": "SA",
+    "capital": "Brasília",
+    "currency": {
+      "code": "BRL",
+      "name": "Brazilian Real",
+      "symbol": "R$"
+    },
+    "languages": ["Portuguese"],
+    "population": 212559417,
+    "area": 8515767,
+    "flag": "🇧🇷",
+    "timezone": "UTC-2 to UTC-5",
+    "active": true
+  },
+  {
+    "name": "Argentina",
+    "code": "AR",
+    "regionCode": "SA",
+    "capital": "Buenos Aires",
+    "currency": {
+      "code": "ARS",
+      "name": "Argentine Peso",
+      "symbol": "$"
+    },
+    "languages": ["Spanish"],
+    "population": 45195774,
+    "area": 2780400,
+    "flag": "🇦🇷",
+    "timezone": "UTC-3",
+    "active": true
+  },
+  {
+    "name": "Colombia",
+    "code": "CO",
+    "regionCode": "SA",
+    "capital": "Bogotá",
+    "currency": {
+      "code": "COP",
+      "name": "Colombian Peso",
+      "symbol": "$"
+    },
+    "languages": ["Spanish"],
+    "population": 50882891,
+    "area": 1141748,
+    "flag": "🇨🇴",
+    "timezone": "UTC-5",
+    "active": true
+  },
+  {
+    "name": "United Kingdom",
+    "code": "GB",
+    "regionCode": "EU",
+    "capital": "London",
+    "currency": {
+      "code": "GBP",
+      "name": "British Pound",
+      "symbol": "£"
+    },
+    "languages": ["English"],
+    "population": 67886011,
+    "area": 242900,
+    "flag": "🇬🇧",
+    "timezone": "UTC+0",
+    "active": true
+  },
+  {
+    "name": "France",
+    "code": "FR",
+    "regionCode": "EU",
+    "capital": "Paris",
+    "currency": {
+      "code": "EUR",
+      "name": "Euro",
+      "symbol": "€"
+    },
+    "languages": ["French"],
+    "population": 65273511,
+    "area": 551695,
+    "flag": "🇫🇷",
+    "timezone": "UTC+1",
+    "active": true
+  },
+  {
+    "name": "Germany",
+    "code": "DE",
+    "regionCode": "EU",
+    "capital": "Berlin",
+    "currency": {
+      "code": "EUR",
+      "name": "Euro",
+      "symbol": "€"
+    },
+    "languages": ["German"],
+    "population": 83783942,
+    "area": 357114,
+    "flag": "🇩🇪",
+    "timezone": "UTC+1",
+    "active": true
+  },
+  {
+    "name": "China",
+    "code": "CN",
+    "regionCode": "AS",
+    "capital": "Beijing",
+    "currency": {
+      "code": "CNY",
+      "name": "Chinese Yuan",
+      "symbol": "¥"
+    },
+    "languages": ["Chinese"],
+    "population": 1439323776,
+    "area": 9706961,
+    "flag": "🇨🇳",
+    "timezone": "UTC+8",
+    "active": true
+  },
+  {
+    "name": "Japan",
+    "code": "JP",
+    "regionCode": "AS",
+    "capital": "Tokyo",
+    "currency": {
+      "code": "JPY",
+      "name": "Japanese Yen",
+      "symbol": "¥"
+    },
+    "languages": ["Japanese"],
+    "population": 126476461,
+    "area": 377975,
+    "flag": "🇯🇵",
+    "timezone": "UTC+9",
+    "active": true
+  },
+  {
+    "name": "India",
+    "code": "IN",
+    "regionCode": "AS",
+    "capital": "New Delhi",
+    "currency": {
+      "code": "INR",
+      "name": "Indian Rupee",
+      "symbol": "₹"
+    },
+    "languages": ["Hindi", "English"],
+    "population": 1380004385,
+    "area": 3287263,
+    "flag": "🇮🇳",
+    "timezone": "UTC+5:30",
+    "active": true
+  },
+  {
+    "name": "South Africa",
+    "code": "ZA",
+    "regionCode": "AF",
+    "capital": "Pretoria",
+    "currency": {
+      "code": "ZAR",
+      "name": "South African Rand",
+      "symbol": "R"
+    },
+    "languages": ["Afrikaans", "English", "Zulu", "Xhosa"],
+    "population": 59308690,
+    "area": 1221037,
+    "flag": "🇿🇦",
+    "timezone": "UTC+2",
+    "active": true
+  },
+  {
+    "name": "Egypt",
+    "code": "EG",
+    "regionCode": "AF",
+    "capital": "Cairo",
+    "currency": {
+      "code": "EGP",
+      "name": "Egyptian Pound",
+      "symbol": "£"
+    },
+    "languages": ["Arabic"],
+    "population": 102334404,
+    "area": 1002450,
+    "flag": "🇪🇬",
+    "timezone": "UTC+2",
+    "active": true
+  },
+  {
+    "name": "Nigeria",
+    "code": "NG",
+    "regionCode": "AF",
+    "capital": "Abuja",
+    "currency": {
+      "code": "NGN",
+      "name": "Nigerian Naira",
+      "symbol": "₦"
+    },
+    "languages": ["English"],
+    "population": 206139589,
+    "area": 923768,
+    "flag": "🇳🇬",
+    "timezone": "UTC+1",
+    "active": true
+  },
+  {
+    "name": "Australia",
+    "code": "AU",
+    "regionCode": "OC",
+    "capital": "Canberra",
+    "currency": {
+      "code": "AUD",
+      "name": "Australian Dollar",
+      "symbol": "$"
+    },
+    "languages": ["English"],
+    "population": 25499884,
+    "area": 7692024,
+    "flag": "🇦🇺",
+    "timezone": "UTC+8 to UTC+10:30",
+    "active": true
+  },
+  {
+    "name": "New Zealand",
+    "code": "NZ",
+    "regionCode": "OC",
+    "capital": "Wellington",
+    "currency": {
+      "code": "NZD",
+      "name": "New Zealand Dollar",
+      "symbol": "$"
+    },
+    "languages": ["English", "Māori"],
+    "population": 4822233,
+    "area": 270467,
+    "flag": "🇳🇿",
+    "timezone": "UTC+12",
+    "active": true
+  }
+]

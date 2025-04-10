@@ -10,7 +10,11 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "seed": "NODE_ENV=production node src/scripts/seed.js",
+    "seed:dev": "NODE_ENV=development node src/scripts/seed.js",
+    "seed:test": "NODE_ENV=test node src/scripts/seed.js",
+    "seed:clear": "node src/scripts/seed.js --clear"
   },
   "keywords": [
     "geolocation",

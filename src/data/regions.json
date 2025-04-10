@@ -1,0 +1,58 @@
+[
+  {
+    "name": "North America",
+    "code": "NA",
+    "description": "The northern continent of the Americas, situated in the Earth's northern hemisphere and western hemisphere.",
+    "population": 579000000,
+    "area": 24709000,
+    "active": true
+  },
+  {
+    "name": "South America",
+    "code": "SA",
+    "description": "The southern continent of the Americas, situated mostly in the Earth's southern hemisphere.",
+    "population": 422500000,
+    "area": 17840000,
+    "active": true
+  },
+  {
+    "name": "Europe",
+    "code": "EU",
+    "description": "A continent located entirely in the Northern Hemisphere and mostly in the Eastern Hemisphere.",
+    "population": 746400000,
+    "area": 10180000,
+    "active": true
+  },
+  {
+    "name": "Asia",
+    "code": "AS",
+    "description": "The largest and most populous continent, located primarily in the Eastern and Northern Hemispheres.",
+    "population": 4561000000,
+    "area": 44579000,
+    "active": true
+  },
+  {
+    "name": "Africa",
+    "code": "AF",
+    "description": "The second-largest and second-most populous continent, after Asia in both cases.",
+    "population": 1216000000,
+    "area": 30370000,
+    "active": true
+  },
+  {
+    "name": "Oceania",
+    "code": "OC",
+    "description": "A geographic region that includes Australasia, Melanesia, Micronesia, and Polynesia.",
+    "population": 41570000,
+    "area": 8525989,
+    "active": true
+  },
+  {
+    "name": "Antarctica",
+    "code": "AN",
+    "description": "Earth's southernmost continent, containing the geographic South Pole.",
+    "population": 4400,
+    "area": 14200000,
+    "active": true
+  }
+]
