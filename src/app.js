@@ -6,6 +6,7 @@ const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const { errorHandler } = require('./middleware/errorHandler');
 const routes = require('./routes');
+const { setupSwagger } = require('./swagger');
 
 // Initialize express app
 const app = express();
@@ -18,6 +19,9 @@ app.use(express.json()); // Parse JSON bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 app.use(cookieParser()); // Parse cookies
 app.use(morgan('dev')); // HTTP request logger
+
+// Set up Swagger documentation
+setupSwagger(app);
 
 // API routes
 app.use('/api', routes);

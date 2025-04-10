@@ -1,0 +1,1077 @@
+openapi: 3.0.0
+info:
+  title: Geolocation Component API
+  description: |
+    API for the Geolocation Component that provides location detection and region-specific configurations.
+    
+    ## Features
+    - IP-based location detection
+    - Region and country-specific configurations
+    - Location override capabilities
+    - Caching for improved performance
+  version: 1.0.0
+  contact:
+    name: API Support
+
+servers:
+  - url: /api
+    description: API base path
+
+tags:
+  - name: Geolocation
+    description: Geolocation detection and configuration endpoints
+  - name: Authentication
+    description: User authentication and authorization endpoints
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token for authentication
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            message:
+              type: string
+              example: Error message
+            details:
+              type: string
+              example: Detailed error information
+
+    Location:
+      type: object
+      properties:
+        ip:
+          type: string
+          example: "203.0.113.1"
+        country:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "US"
+            name:
+              type: string
+              example: "United States"
+        region:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "CA"
+            name:
+              type: string
+              example: "California"
+        city:
+          type: object
+          properties:
+            name:
+              type: string
+              example: "San Francisco"
+            geoname_id:
+              type: integer
+              example: 5391959
+        postal:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "94105"
+        location:
+          type: object
+          properties:
+            latitude:
+              type: number
+              format: float
+              example: 37.7749
+            longitude:
+              type: number
+              format: float
+              example: -122.4194
+            time_zone:
+              type: string
+              example: "America/Los_Angeles"
+
+    LocationResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            location:
+              $ref: '#/components/schemas/Location'
+            source:
+              type: string
+              enum: [geoip, override]
+              example: geoip
+
+    RegionConfig:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "us-west"
+        name:
+          type: string
+          example: "US West"
+        settings:
+          type: object
+          additionalProperties: true
+          example:
+            cdn: "cdn-west.example.com"
+            streamQuality: "auto"
+
+    RegionConfigResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            config:
+              $ref: '#/components/schemas/RegionConfig'
+            regionCode:
+              type: string
+              example: "us-west"
+            type:
+              type: string
+              example: "all"
+
+    CountryConfig:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "US"
+        name:
+          type: string
+          example: "United States"
+        settings:
+          type: object
+          additionalProperties: true
+          example:
+            language: "en-US"
+            currency: "USD"
+            contentRating: "PG-13"
+
+    CountryConfigResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            config:
+              $ref: '#/components/schemas/CountryConfig'
+            countryCode:
+              type: string
+              example: "US"
+            type:
+              type: string
+              example: "all"
+
+    LocationConfig:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            config:
+              type: object
+              additionalProperties: true
+              example:
+                language: "en-US"
+                currency: "USD"
+                contentRating: "PG-13"
+                cdn: "cdn-west.example.com"
+            location:
+              type: object
+              properties:
+                country:
+                  type: string
+                  example: "US"
+                region:
+                  type: string
+                  example: "CA"
+            type:
+              type: string
+              example: "all"
+
+    LocationOverride:
+      type: object
+      properties:
+        country:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "MX"
+            name:
+              type: string
+              example: "Mexico"
+        region:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "CMX"
+            name:
+              type: string
+              example: "Mexico City"
+
+    LocationOverrideResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Location override applied"
+            location:
+              $ref: '#/components/schemas/LocationOverride'
+
+    ClearOverrideResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Location override cleared"
+
+    ClearCacheResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Cache cleared (all)"
+            clearedCount:
+              type: integer
+              example: 15
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "60d21b4667d0d8992e610c85"
+        username:
+          type: string
+          example: "johndoe"
+        email:
+          type: string
+          format: email
+          example: "john.doe@example.com"
+        firstName:
+          type: string
+          example: "John"
+        lastName:
+          type: string
+          example: "Doe"
+        roles:
+          type: array
+          items:
+            type: string
+            enum: [user, admin]
+          example: ["user"]
+
+    RegisterRequest:
+      type: object
+      required:
+        - username
+        - email
+        - password
+      properties:
+        username:
+          type: string
+          example: "johndoe"
+        email:
+          type: string
+          format: email
+          example: "john.doe@example.com"
+        password:
+          type: string
+          format: password
+          example: "securePassword123"
+        firstName:
+          type: string
+          example: "John"
+        lastName:
+          type: string
+          example: "Doe"
+
+    LoginRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          example: "johndoe"
+        password:
+          type: string
+          format: password
+          example: "securePassword123"
+
+    AuthResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            user:
+              $ref: '#/components/schemas/User'
+            accessToken:
+              type: string
+              example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+    RefreshTokenRequest:
+      type: object
+      properties:
+        refreshToken:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+    LogoutRequest:
+      type: object
+      properties:
+        refreshToken:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+    LogoutResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Logged out successfully"
+
+paths:
+  /geolocation/detect:
+    get:
+      tags:
+        - Geolocation
+      summary: Detect location from client IP
+      description: |
+        Detects the user's location based on their IP address. 
+        Can use an IP override via query parameter for testing.
+      parameters:
+        - name: ip
+          in: query
+          description: Optional IP address override for testing
+          required: false
+          schema:
+            type: string
+            format: ipv4
+      responses:
+        '200':
+          description: Location detected successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LocationResponse'
+              example:
+                success: true
+                data:
+                  location:
+                    ip: "203.0.113.1"
+                    country:
+                      code: "US"
+                      name: "United States"
+                    region:
+                      code: "CA"
+                      name: "California"
+                    city:
+                      name: "San Francisco"
+                      geoname_id: 5391959
+                    postal:
+                      code: "94105"
+                    location:
+                      latitude: 37.7749
+                      longitude: -122.4194
+                      time_zone: "America/Los_Angeles"
+                  source: "geoip"
+        '404':
+          description: Location not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                success: false
+                error:
+                  message: "Location not found"
+                  details: "Could not determine location for IP: 203.0.113.1"
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-rate-limit:
+        description: Limits requests to 100 per minute per IP
+        max: 100
+        period: 60
+      x-cache:
+        ttl: 300000
+        description: Response is cached for 5 minutes (300000ms)
+
+  /geolocation/region/{regionCode}:
+    get:
+      tags:
+        - Geolocation
+      summary: Get region-specific configurations
+      description: Retrieves configuration settings for a specific region
+      parameters:
+        - name: regionCode
+          in: path
+          description: Region code (e.g., us-west, eu-central)
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Region configuration retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegionConfigResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Configuration not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-cache:
+        ttl: 1800000
+        description: Response is cached for 30 minutes (1800000ms)
+
+  /geolocation/region/{regionCode}/{type}:
+    get:
+      tags:
+        - Geolocation
+      summary: Get specific type of region configuration
+      description: Retrieves specific type of configuration settings for a region
+      parameters:
+        - name: regionCode
+          in: path
+          description: Region code (e.g., us-west, eu-central)
+          required: true
+          schema:
+            type: string
+        - name: type
+          in: path
+          description: Configuration type (e.g., cdn, streaming)
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Region configuration retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegionConfigResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Configuration not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-cache:
+        ttl: 1800000
+        description: Response is cached for 30 minutes (1800000ms)
+
+  /geolocation/country/{countryCode}:
+    get:
+      tags:
+        - Geolocation
+      summary: Get country-specific configurations
+      description: Retrieves configuration settings for a specific country
+      parameters:
+        - name: countryCode
+          in: path
+          description: ISO country code (e.g., US, MX)
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Country configuration retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CountryConfigResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Configuration not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-cache:
+        ttl: 1800000
+        description: Response is cached for 30 minutes (1800000ms)
+
+  /geolocation/country/{countryCode}/{type}:
+    get:
+      tags:
+        - Geolocation
+      summary: Get specific type of country configuration
+      description: Retrieves specific type of configuration settings for a country
+      parameters:
+        - name: countryCode
+          in: path
+          description: ISO country code (e.g., US, MX)
+          required: true
+          schema:
+            type: string
+        - name: type
+          in: path
+          description: Configuration type (e.g., language, currency)
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Country configuration retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CountryConfigResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Configuration not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-cache:
+        ttl: 1800000
+        description: Response is cached for 30 minutes (1800000ms)
+
+  /geolocation/config:
+    get:
+      tags:
+        - Geolocation
+      summary: Get configurations based on client location
+      description: Retrieves configuration settings based on the client's detected location
+      parameters:
+        - name: ip
+          in: query
+          description: Optional IP address override for testing
+          required: false
+          schema:
+            type: string
+            format: ipv4
+      responses:
+        '200':
+          description: Location-based configuration retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LocationConfig'
+        '404':
+          description: Location or configuration not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-cache:
+        ttl: 300000
+        description: Response is cached for 5 minutes (300000ms)
+
+  /geolocation/config/{type}:
+    get:
+      tags:
+        - Geolocation
+      summary: Get specific type of configuration based on client location
+      description: Retrieves specific type of configuration settings based on the client's detected location
+      parameters:
+        - name: type
+          in: path
+          description: Configuration type (e.g., language, currency, cdn)
+          required: true
+          schema:
+            type: string
+        - name: ip
+          in: query
+          description: Optional IP address override for testing
+          required: false
+          schema:
+            type: string
+            format: ipv4
+      responses:
+        '200':
+          description: Location-based configuration retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LocationConfig'
+        '404':
+          description: Location or configuration not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-cache:
+        ttl: 300000
+        description: Response is cached for 5 minutes (300000ms)
+
+  /geolocation/override:
+    post:
+      tags:
+        - Geolocation
+      summary: Override location for the current session
+      description: Sets a location override for the current session, useful for testing
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - location
+              properties:
+                location:
+                  $ref: '#/components/schemas/LocationOverride'
+      responses:
+        '200':
+          description: Location override applied successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LocationOverrideResponse'
+        '400':
+          description: Invalid location override
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - Geolocation
+      summary: Clear location override for the current session
+      description: Removes any location override set for the current session
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Location override cleared successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClearOverrideResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /geolocation/cache:
+    delete:
+      tags:
+        - Geolocation
+      summary: Clear geolocation caches
+      description: Clears the geolocation caches (admin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: type
+          in: query
+          description: Cache type to clear (location, config, or all)
+          required: false
+          schema:
+            type: string
+            enum: [location, config, all]
+            default: all
+      responses:
+        '200':
+          description: Cache cleared successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClearCacheResponse'
+        '400':
+          description: Invalid cache type
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden (requires admin role)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register a new user
+      description: Creates a new user account and returns authentication tokens
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '409':
+          description: Username or email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Login user
+      description: Authenticates a user and returns access and refresh tokens
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: User logged in successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...; HttpOnly; Secure; SameSite=Strict; Max-Age=604800
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/refresh-token:
+    post:
+      tags:
+        - Authentication
+      summary: Refresh access token
+      description: |
+        Refreshes an expired access token using a valid refresh token.
+        The refresh token can be provided either in the request body or as an HTTP-only cookie.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...; HttpOnly; Secure; SameSite=Strict; Max-Age=604800
+        '400':
+          description: Refresh token is required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Invalid refresh token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: Logout user
+      description: |
+        Logs out a user by revoking their refresh token.
+        The refresh token can be provided either in the request body or as an HTTP-only cookie.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogoutRequest'
+      responses:
+        '200':
+          description: User logged out successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogoutResponse'
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: refreshToken=; HttpOnly; Secure; SameSite=Strict; Max-Age=0
+        '400':
+          description: Refresh token is required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/profile:
+    get:
+      tags:
+        - Authentication
+      summary: Get current user profile
+      description: Retrieves the profile information of the currently authenticated user
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/admin:
+    get:
+      tags:
+        - Authentication
+      summary: Admin only route
+      description: A protected route that requires admin role
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Admin access granted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Admin access granted"
+                  user:
+                    $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden (requires admin role)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
