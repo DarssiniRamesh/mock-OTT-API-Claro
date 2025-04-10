@@ -1,10 +1,28 @@
 /**
  * Unit tests for GeoIP Utility Functions
+ * Using factory pattern for better isolation and testing
  */
 
-const geoipUtils = require('../../../src/utils/geoip.utils');
+/**
+ * GeoIP Utils Factory
+ * Creates a fresh instance of the GeoIP utils for each test
+ * to avoid issues with shared state
+ */
+const createGeoIPUtils = () => {
+  // Clear the require cache for the geoip.utils module
+  jest.resetModules();
+  
+  // Return a fresh instance of the utils
+  return require('../../../src/utils/geoip.utils');
+};
 
 describe('GeoIP Utility Functions', () => {
+  let geoipUtils;
+  
+  beforeEach(() => {
+    // Create a fresh instance of the utils for each test
+    geoipUtils = createGeoIPUtils();
+  });
   describe('isValidIpv4Address', () => {
     it('should correctly validate IPv4 addresses', () => {
       // Valid IPv4 addresses

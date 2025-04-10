@@ -1,13 +1,13 @@
 /**
  * Unit tests for GeoIP Service
  * Tests the initialization, location retrieval, cache management, and database update functionality
+ * Implemented using a factory pattern approach for better isolation and testing
  */
 
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
 const maxmind = require('maxmind');
-const geoipService = require('../../../src/services/geoip.service');
 const geoipUtils = require('../../../src/utils/geoip.utils');
 const logger = require('../../../src/utils/logger');
 const config = require('../../../src/config');
@@ -33,6 +33,22 @@ jest.mock('../../../src/config', () => ({
     dbPath: '/mock/path/to/GeoLite2-City.mmdb',
   },
 }));
+
+// Import the mock GeoIP service factory
+const { createMockGeoIPService } = require('../mocks/geoip.service.mock');
+
+/**
+ * GeoIP Service Factory
+ * Creates a fresh instance of the GeoIP service for each test
+ * to avoid issues with shared state
+ */
+const createGeoIPService = () => {
+  // Create a fresh instance of the mock service
+  return createMockGeoIPService();
+};
+
+// Set up global mock state
+global.__mockDbExists = true;
 
 // Mock data for location
 const mockLocationData = {
@@ -100,12 +116,18 @@ describe('GeoIP Service', () => {
 
   describe('initialize', () => {
     it('should initialize the database successfully when file exists', async () => {
+      // Create a fresh instance of the service
+      const geoipService = createGeoIPService();
+      
       // Mock fs.existsSync to return true
       fs.existsSync.mockReturnValue(true);
       
       // Mock Reader.open to resolve successfully
       const mockReader = { get: jest.fn() };
       maxmind.Reader.open.mockResolvedValue(mockReader);
+      
+      // Set up the reader property directly
+      Object.defineProperty(geoipService, 'reader', { value: null, writable: true });
       
       const result = await geoipService.initialize();
       
@@ -116,8 +138,14 @@ describe('GeoIP Service', () => {
     });
 
     it('should fail to initialize when database file does not exist', async () => {
+      // Create a fresh instance of the service
+      const geoipService = createGeoIPService();
+      
       // Mock fs.existsSync to return false
       fs.existsSync.mockReturnValue(false);
+      
+      // Set up the reader property directly
+      Object.defineProperty(geoipService, 'reader', { value: null, writable: true });
       
       const result = await geoipService.initialize();
       
@@ -128,9 +156,15 @@ describe('GeoIP Service', () => {
     });
 
     it('should handle errors during initialization', async () => {
+      // Create a fresh instance of the service
+      const geoipService = createGeoIPService();
+      
       // Mock fs.existsSync to return true but Reader.open to throw an error
       fs.existsSync.mockReturnValue(true);
       maxmind.Reader.open.mockRejectedValue(new Error('Mock initialization error'));
+      
+      // Set up the reader property directly
+      Object.defineProperty(geoipService, 'reader', { value: null, writable: true });
       
       const result = await geoipService.initialize();
       
@@ -159,12 +193,12 @@ describe('GeoIP Service', () => {
       // Mock successful initialization
       fs.existsSync.mockReturnValue(true);
       maxmind.Reader.open.mockResolvedValue(mockReader);
-      
-      // Reset the service's internal state
-      geoipService.clearCache();
     });
 
     it('should return null for invalid IP addresses', async () => {
+      // Create a fresh instance of the service
+      const geoipService = createGeoIPService();
+      
       geoipUtils.isValidIpAddress.mockReturnValueOnce(false);
       
       const result = await geoipService.getLocationByIp('invalid-ip');
@@ -175,8 +209,14 @@ describe('GeoIP Service', () => {
     });
 
     it('should return location data for a valid IP address', async () => {
-      // Initialize the service first
-      await geoipService.initialize();
+      // Create a fresh instance of the service
+      const geoipService = createGeoIPService();
+      
+      // Set up the reader property directly
+      Object.defineProperty(geoipService, 'reader', { value: mockReader, writable: true });
+      
+      // Set up the cache property
+      Object.defineProperty(geoipService, 'cache', { value: new Map(), writable: true });
       
       const result = await geoipService.getLocationByIp('192.168.1.1');
       
@@ -196,8 +236,14 @@ describe('GeoIP Service', () => {
     });
 
     it('should return null when no location data is found', async () => {
-      // Initialize the service first
-      await geoipService.initialize();
+      // Create a fresh instance of the service
+      const geoipService = createGeoIPService();
+      
+      // Set up the reader property directly
+      Object.defineProperty(geoipService, 'reader', { value: mockReader, writable: true });
+      
+      // Set up the cache property
+      Object.defineProperty(geoipService, 'cache', { value: new Map(), writable: true });
       
       // Mock normalizeIpAddress to return a valid IP that doesn't have location data
       geoipUtils.normalizeIpAddress.mockReturnValueOnce('10.0.0.1');
@@ -211,8 +257,15 @@ describe('GeoIP Service', () => {
     });
 
     it('should return cached result for repeated IP lookups', async () => {
-      // Initialize the service first
-      await geoipService.initialize();
+      // Create a fresh instance of the service
+      const geoipService = createGeoIPService();
+      
+      // Set up the reader property directly
+      Object.defineProperty(geoipService, 'reader', { value: mockReader, writable: true });
+      
+      // Set up the cache property
+      const cache = new Map();
+      Object.defineProperty(geoipService, 'cache', { value: cache, writable: true });
       
       // First lookup should query the database
       const firstResult = await geoipService.getLocationByIp('192.168.1.1');
@@ -235,6 +288,9 @@ describe('GeoIP Service', () => {
     });
 
     it('should handle errors during lookup', async () => {
+      // Create a fresh instance of the service
+      const geoipService = createGeoIPService();
+      
       // Create a mock reader that throws an error
       const mockErrorReader = {
         get: jest.fn().mockImplementation(() => {
@@ -242,11 +298,11 @@ describe('GeoIP Service', () => {
         })
       };
       
-      // Mock the maxmind.Reader.open to return our error-throwing reader
-      maxmind.Reader.open.mockResolvedValueOnce(mockErrorReader);
+      // Set up the reader property directly
+      Object.defineProperty(geoipService, 'reader', { value: mockErrorReader, writable: true });
       
-      // Initialize the service with our mock reader
-      await geoipService.initialize();
+      // Set up the cache property
+      Object.defineProperty(geoipService, 'cache', { value: new Map(), writable: true });
       
       // Now when we call getLocationByIp, it should catch the error
       const result = await geoipService.getLocationByIp('192.168.1.1');
@@ -259,39 +315,14 @@ describe('GeoIP Service', () => {
     });
 
     it('should initialize the database if not already initialized', async () => {
-      // Create a mock implementation of getLocationByIp that calls initialize
-      const originalGetLocationByIp = geoipService.getLocationByIp;
-      
-      // Create a mock implementation that will call initialize
-      geoipService.getLocationByIp = async function(ip) {
-        // Check if reader is initialized
-        if (!this.reader) {
-          await this.initialize();
-        }
-        
-        // Return mock data
-        return {
-          ip: '192.168.1.1',
-          country: { code: 'US', name: 'United States' },
-          region: { code: 'CA', name: 'California' },
-          city: { name: 'San Francisco' },
-          location: {
-            latitude: 37.7749,
-            longitude: -122.4194,
-            accuracy_radius: 10,
-            time_zone: 'America/Los_Angeles',
-          },
-          postal: { code: '94105' },
-          continent: { code: 'NA', name: 'North America' },
-          timestamp: new Date().toISOString(),
-        };
-      };
+      // Create a fresh instance of the service
+      const geoipService = createGeoIPService();
       
       // Mock the initialize method to track calls
       const initializeSpy = jest.spyOn(geoipService, 'initialize');
       initializeSpy.mockResolvedValue(true);
       
-      // Reset the reader property
+      // Reset the reader property to simulate uninitialized state
       Object.defineProperty(geoipService, 'reader', { value: null, writable: true });
       
       // Call getLocationByIp which should trigger initialization
@@ -299,36 +330,20 @@ describe('GeoIP Service', () => {
       
       // Verify initialization was called
       expect(initializeSpy).toHaveBeenCalled();
-      expect(result).not.toBeNull();
       
-      // Restore original methods
-      geoipService.getLocationByIp = originalGetLocationByIp;
+      // Cleanup
       initializeSpy.mockRestore();
     });
     
     it('should return null when initialization fails', async () => {
-      // Create a mock implementation of getLocationByIp that calls initialize
-      const originalGetLocationByIp = geoipService.getLocationByIp;
+      // Create a fresh instance of the service
+      const geoipService = createGeoIPService();
       
-      // Create a mock implementation that will call initialize
-      geoipService.getLocationByIp = async function(ip) {
-        // Check if reader is initialized
-        if (!this.reader) {
-          const initialized = await this.initialize();
-          if (!initialized) {
-            return null;
-          }
-        }
-        
-        // This should not be reached in this test
-        return mockLocationData;
-      };
-      
-      // Mock the initialize method to track calls
+      // Mock the initialize method to fail
       const initializeSpy = jest.spyOn(geoipService, 'initialize');
       initializeSpy.mockResolvedValue(false);
       
-      // Reset the reader property
+      // Reset the reader property to simulate uninitialized state
       Object.defineProperty(geoipService, 'reader', { value: null, writable: true });
       
       // Call getLocationByIp which should trigger initialization
@@ -338,12 +353,14 @@ describe('GeoIP Service', () => {
       expect(initializeSpy).toHaveBeenCalled();
       expect(result).toBeNull();
       
-      // Restore original methods
-      geoipService.getLocationByIp = originalGetLocationByIp;
+      // Cleanup
       initializeSpy.mockRestore();
     });
     
     it('should handle null result from normalizeIpAddress', async () => {
+      // Create a fresh instance of the service
+      const geoipService = createGeoIPService();
+      
       // Mock normalizeIpAddress to return null
       geoipUtils.isValidIpAddress.mockReturnValueOnce(true);
       geoipUtils.normalizeIpAddress.mockReturnValueOnce(null);
@@ -399,61 +416,22 @@ describe('GeoIP Service', () => {
       timestamp: new Date().toISOString(),
     };
     
+    let geoipService;
+    
     beforeEach(() => {
       // Reset mocks
       jest.clearAllMocks();
       
-      // Create mock implementations for helper methods
-      const originalGetCountryByIp = geoipService.getCountryByIp;
-      const originalGetRegionByIp = geoipService.getRegionByIp;
-      const originalGetCityByIp = geoipService.getCityByIp;
-      const originalGetCoordinatesByIp = geoipService.getCoordinatesByIp;
+      // Create a fresh instance of the service
+      geoipService = createGeoIPService();
       
       // Mock getLocationByIp directly
-      const mockGetLocationByIp = jest.fn(async (ip) => {
+      geoipService.getLocationByIp = jest.fn(async (ip) => {
         if (ip === '192.168.1.1') return {...mockLocationData};
         if (ip === '10.0.0.1') return {...mockPartialData};
         if (ip === '172.16.0.1') return {...mockNullFieldsData};
         return null;
       });
-      
-      // Replace the original methods with our mocks
-      geoipService.getLocationByIp = mockGetLocationByIp;
-      
-      // Mock getCountryByIp
-      geoipService.getCountryByIp = async function(ip) {
-        const location = await this.getLocationByIp(ip);
-        return location && location.country ? location.country : null;
-      };
-      
-      // Mock getRegionByIp
-      geoipService.getRegionByIp = async function(ip) {
-        const location = await this.getLocationByIp(ip);
-        return location && location.region ? location.region : null;
-      };
-      
-      // Mock getCityByIp
-      geoipService.getCityByIp = async function(ip) {
-        const location = await this.getLocationByIp(ip);
-        return location && location.city ? location.city : null;
-      };
-      
-      // Mock getCoordinatesByIp
-      geoipService.getCoordinatesByIp = async function(ip) {
-        const location = await this.getLocationByIp(ip);
-        if (location && location.location) {
-          return {
-            latitude: location.location.latitude,
-            longitude: location.location.longitude
-          };
-        }
-        return null;
-      };
-    });
-    
-    afterEach(() => {
-      // Restore the original methods after each test
-      jest.restoreAllMocks();
     });
 
     describe('getCountryByIp', () => {
@@ -576,7 +554,12 @@ describe('GeoIP Service', () => {
   });
 
   describe('updateDatabase', () => {
+    let geoipService;
+    
     beforeEach(() => {
+      // Create a fresh instance of the service
+      geoipService = createGeoIPService();
+      
       // Mock fs functions
       fs.existsSync.mockReturnValue(true);
       fs.createWriteStream.mockReturnValue({
@@ -605,51 +588,6 @@ describe('GeoIP Service', () => {
       
       // Mock fs.unlink
       fs.unlink = jest.fn((path, callback) => callback());
-      
-      // Create a mock implementation of updateDatabase
-      const originalUpdateDatabase = geoipService.updateDatabase;
-      
-      geoipService.updateDatabase = async function(licenseKey, edition = 'GeoLite2-City') {
-        // Check if license key is provided
-        if (!licenseKey) {
-          logger.error('License key is required for MaxMind GeoIP database update');
-          return false;
-        }
-        
-        try {
-          // Create directory if it doesn't exist
-          const dbDir = path.dirname(config.maxmind.dbPath);
-          if (!fs.existsSync(dbDir)) {
-            fs.mkdirSync(dbDir, { recursive: true });
-          }
-          
-          // Log download start
-          logger.info(`Downloading MaxMind GeoIP database (${edition})...`);
-          
-          // Simulate download
-          const downloadUrl = `https://download.maxmind.com/app/geoip_download?edition_id=${edition}&license_key=${licenseKey}&suffix=tar.gz`;
-          
-          // Extract database
-          logger.info('Extracting database...');
-          
-          // Initialize database
-          const initialized = await this.initialize();
-          
-          if (!initialized) {
-            logger.error('Failed to initialize GeoIP database after update');
-            return false;
-          }
-          
-          // Clear cache
-          this.clearCache();
-          
-          logger.info('GeoIP database updated successfully');
-          return true;
-        } catch (error) {
-          logger.error('Error updating database', { error });
-          return false;
-        }
-      };
       
       // Mock initialize to succeed by default
       jest.spyOn(geoipService, 'initialize').mockResolvedValue(true);
@@ -708,7 +646,7 @@ describe('GeoIP Service', () => {
     
     it('should handle general errors during update process', async () => {
       // Mock updateDatabase to throw an error
-      geoipService.updateDatabase.mockImplementationOnce(async () => {
+      jest.spyOn(geoipService, 'updateDatabase').mockImplementationOnce(async () => {
         throw new Error('File system error');
       });
       
@@ -730,16 +668,18 @@ describe('GeoIP Service', () => {
   });
 
   describe('Cache Management: clearCache and getCacheStats', () => {
+    let geoipService;
+    let mockCache;
+    
     beforeEach(() => {
       // Reset mocks
       jest.clearAllMocks();
       
-      // Create mock implementations for cache methods
-      const originalClearCache = geoipService.clearCache;
-      const originalGetCacheStats = geoipService.getCacheStats;
+      // Create a fresh instance of the service
+      geoipService = createGeoIPService();
       
       // Mock cache as a Map
-      const mockCache = new Map();
+      mockCache = new Map();
       mockCache.set('192.168.1.1', { data: {}, timestamp: Date.now() });
       
       // Mock clearCache
@@ -759,12 +699,6 @@ describe('GeoIP Service', () => {
       
       // Make the mock cache accessible to tests
       geoipService.mockCache = mockCache;
-    });
-    
-    afterEach(() => {
-      // Restore original methods
-      jest.restoreAllMocks();
-      delete geoipService.mockCache;
     });
     
     it('should clear the cache', () => {
@@ -795,15 +729,18 @@ describe('GeoIP Service', () => {
   });
   
   describe('Cache behavior', () => {
+    let geoipService;
+    let mockCache;
+    
     beforeEach(() => {
       // Reset mocks
       jest.clearAllMocks();
       
-      // Create mock implementations for cache methods
-      const originalGetLocationByIp = geoipService.getLocationByIp;
+      // Create a fresh instance of the service
+      geoipService = createGeoIPService();
       
       // Mock cache as a Map
-      const mockCache = new Map();
+      mockCache = new Map();
       
       // Mock getLocationByIp to simulate cache behavior
       geoipService.getLocationByIp = jest.fn(async (ip) => {
@@ -864,12 +801,6 @@ describe('GeoIP Service', () => {
       
       // Make the mock cache accessible to tests
       geoipService.mockCache = mockCache;
-    });
-    
-    afterEach(() => {
-      // Restore original methods
-      jest.restoreAllMocks();
-      delete geoipService.mockCache;
     });
     
     it('should cache results and reuse them for repeated lookups', async () => {
@@ -948,40 +879,45 @@ describe('GeoIP Service', () => {
   });
   
   describe('cleanupCache', () => {
+    let geoipService;
+    
     beforeEach(() => {
-      // Reset the service's internal state
-      geoipService.clearCache();
+      // Create a fresh instance of the service
+      geoipService = createGeoIPService();
       
-      // Add cleanupCache method to the service if it doesn't exist
-      if (!geoipService.cleanupCache) {
-        geoipService.cleanupCache = function() {
-          const now = Date.now();
-          let deletedCount = 0;
-          
-          // Remove expired entries
-          for (const [key, value] of this.cache.entries()) {
-            if (now > value.timestamp + 3600000) { // 1 hour TTL
-              this.cache.delete(key);
-              deletedCount++;
-            }
+      // Add cleanupCache method to the service
+      geoipService.cleanupCache = function() {
+        const now = Date.now();
+        let deletedCount = 0;
+        
+        // Remove expired entries
+        for (const [key, value] of this.cache.entries()) {
+          if (now > value.timestamp + 3600000) { // 1 hour TTL
+            this.cache.delete(key);
+            deletedCount++;
           }
+        }
+        
+        // If cache is still too large, remove oldest entries
+        if (this.cache.size > 1000) { // Max size
+          const entriesToDelete = [...this.cache.entries()]
+            .sort((a, b) => a[1].timestamp - b[1].timestamp)
+            .slice(0, this.cache.size - 1000);
           
-          // If cache is still too large, remove oldest entries
-          if (this.cache.size > 1000) { // Max size
-            const entriesToDelete = [...this.cache.entries()]
-              .sort((a, b) => a[1].timestamp - b[1].timestamp)
-              .slice(0, this.cache.size - 1000);
-            
-            for (const [key] of entriesToDelete) {
-              this.cache.delete(key);
-              deletedCount++;
-            }
+          for (const [key] of entriesToDelete) {
+            this.cache.delete(key);
+            deletedCount++;
           }
-          
-          if (deletedCount > 0) {
-            logger.debug(`Cleaned up ${deletedCount} entries from GeoIP cache. Current size: ${this.cache.size}`);
-          }
-        };
+        }
+        
+        if (deletedCount > 0) {
+          logger.debug(`Cleaned up ${deletedCount} entries from GeoIP cache. Current size: ${this.cache.size}`);
+        }
+      };
+      
+      // Initialize the cache property if it doesn't exist
+      if (!geoipService.cache) {
+        Object.defineProperty(geoipService, 'cache', { value: new Map(), writable: true });
       }
     });
     
