@@ -3,6 +3,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const compression = require('compression');
 const morgan = require('morgan');
+const cookieParser = require('cookie-parser');
 const { errorHandler } = require('./middleware/errorHandler');
 const routes = require('./routes');
 
@@ -15,6 +16,7 @@ app.use(compression()); // Compress responses
 app.use(cors()); // Enable CORS
 app.use(express.json()); // Parse JSON bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
+app.use(cookieParser()); // Parse cookies
 app.use(morgan('dev')); // HTTP request logger
 
 // API routes
