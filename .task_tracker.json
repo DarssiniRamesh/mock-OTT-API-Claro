@@ -1,0 +1,5 @@
+{
+  "task_description": "{'component_name': 'Geolocation Component', 'description': '**Core Technologies:**\n- Node.js v16+ and Express.js v4.17+\n- MongoDB v5.0+ for mock regional configuration storage\n- MaxMind GeoIP2 Database for simulated location detection\n- Basic JWT for mock session management\n- In-memory caching for mock data caching\n\n**Build and Development Tools:**\n- npm for package management\n- ESLint for code quality\n- Jest for unit testing\n- Swagger/OpenAPI for API documentation\n- Docker for containerization\n- Git for version control', 'framework': None, 'interfaces': '', 'algorithms': '', 'pseudocode': '', 'figma_components': []}",
+  "tasks": {},
+  "next_task_id": 1
+}
