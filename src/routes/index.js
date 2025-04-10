@@ -1,12 +1,14 @@
 const express = require('express');
 const authRoutes = require('./auth.routes');
+const geolocationRoutes = require('./geolocation.routes');
 
 const router = express.Router();
 
 // Authentication routes
 router.use('/auth', authRoutes);
 
-// TODO: Add routes for geolocation API
+// Geolocation routes
+router.use('/geolocation', geolocationRoutes);
 
 // Default route
 router.get('/', (req, res) => {
