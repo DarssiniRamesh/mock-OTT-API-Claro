@@ -1,12 +1,12 @@
 /**
  * Database Seed Script
- * Populates the database with initial mock data for regions, countries, cities, and configurations
+ * Populates the database with initial mock data for regions, countries, cities, configurations, and IP ranges
  * 
  * Usage:
  *   - Default (development): node src/scripts/seed.js
  *   - Specific environment: NODE_ENV=production node src/scripts/seed.js
  *   - Clear existing data: node src/scripts/seed.js --clear
- *   - Specific data type: node src/scripts/seed.js --only=regions,countries
+ *   - Specific data type: node src/scripts/seed.js --only=regions,countries,cities,configs,ipranges
  */
 
 const fs = require('fs');
@@ -21,6 +21,7 @@ const Region = require('../models/Region');
 const Country = require('../models/Country');
 const City = require('../models/City');
 const RegionConfig = require('../models/RegionConfig');
+const fs = require('fs').promises;
 
 // Configuration
 const DEFAULT_DATA_DIR = path.join(__dirname, '../data');
@@ -34,6 +35,19 @@ const onlyArg = args.find(arg => arg.startsWith('--only='));
 if (onlyArg) {
   onlyTypes = onlyArg.replace('--only=', '').split(',');
 }
+
+// Create a mock GeoIP database directory if it doesn't exist
+const createGeoIPDir = async () => {
+  try {
+    const dbPath = path.join(__dirname, '../../data');
+    await fs.mkdir(dbPath, { recursive: true });
+    logger.info(`Created GeoIP database directory: ${dbPath}`);
+    return true;
+  } catch (error) {
+    logger.error(`Error creating GeoIP database directory: ${error.message}`);
+    return false;
+  }
+};
 
 /**
  * Load JSON data from file
@@ -245,6 +259,80 @@ const seedCities = async (countries) => {
 };
 
 /**
+ * Seed IP ranges data for geolocation testing
+ */
+const seedIPRanges = async () => {
+  if (onlyTypes.length > 0 && !onlyTypes.includes('ipranges')) {
+    logger.info('Skipping IP ranges seeding');
+    return [];
+  }
+
+  try {
+    const ipRanges = loadData('ip-ranges.json');
+    if (!ipRanges.length) {
+      logger.warn('No IP ranges data found');
+      return [];
+    }
+
+    logger.info(`Seeding ${ipRanges.length} country IP ranges...`);
+    
+    // Create a mock GeoIP database file with the IP ranges
+    // This is a simplified approach - in a real scenario, you would use MaxMind's database format
+    const mockDbPath = path.join(__dirname, '../../data/GeoLite2-City.mmdb');
+    
+    // Create a simple JSON structure that maps IPs to countries
+    const mockDbData = {};
+    
+    for (const countryRange of ipRanges) {
+      const countryCode = countryRange.countryCode;
+      const country = await Country.findOne({ code: countryCode });
+      
+      if (!country) {
+        logger.warn(`Skipping IP ranges for country ${countryCode}: Country not found`);
+        continue;
+      }
+      
+      // Add sample IPs to the mock database
+      for (const sampleIP of countryRange.sampleIPs) {
+        mockDbData[sampleIP] = {
+          country: {
+            iso_code: country.code,
+            names: { en: country.name }
+          },
+          continent: {
+            code: country.region ? country.region.code : null,
+            names: { en: country.region ? country.region.name : null }
+          },
+          location: {
+            latitude: 0,
+            longitude: 0,
+            time_zone: country.timezone
+          }
+        };
+      }
+    }
+    
+    // Write the mock database to a file
+    // In a real scenario, you would use MaxMind's database format
+    // This is just for demonstration purposes
+    try {
+      await createGeoIPDir();
+      await fs.writeFile(mockDbPath, JSON.stringify(mockDbData, null, 2));
+      logger.info(`Created mock GeoIP database at ${mockDbPath}`);
+      logger.warn('This is a mock database for development only. For production, use a real MaxMind database.');
+    } catch (error) {
+      logger.error(`Error creating mock GeoIP database: ${error.message}`);
+    }
+    
+    logger.info(`Successfully seeded IP ranges for ${Object.keys(mockDbData).length} IPs`);
+    return ipRanges;
+  } catch (error) {
+    logger.error(`Error seeding IP ranges: ${error.message}`);
+    return [];
+  }
+};
+
+/**
  * Seed region configurations data
  * @param {Array} regions - The seeded regions
  */
@@ -333,6 +421,20 @@ const seed = async () => {
         await clearCollection(RegionConfig, 'region configs');
       }
       
+      if (onlyTypes.length === 0 || onlyTypes.includes('ipranges')) {
+        // Remove mock GeoIP database if it exists
+        const mockDbPath = path.join(__dirname, '../../data/GeoLite2-City.mmdb');
+        try {
+          await fs.unlink(mockDbPath);
+          logger.info('Removed mock GeoIP database');
+        } catch (error) {
+          // Ignore if file doesn't exist
+          if (error.code !== 'ENOENT') {
+            logger.error(`Error removing mock GeoIP database: ${error.message}`);
+          }
+        }
+      }
+      
       if (onlyTypes.length === 0 || onlyTypes.includes('cities')) {
         await clearCollection(City, 'cities');
       }
@@ -351,15 +453,16 @@ const seed = async () => {
     const countries = await seedCountries(regions);
     const cities = await seedCities(countries);
     const configs = await seedRegionConfigs(regions);
+    const ipRanges = await seedIPRanges();
     
     // Log summary
     logger.info('Database seeding completed successfully!');
-    logger.info(`Seeded ${regions.length} regions, ${countries.length} countries, ${cities.length} cities, and ${configs.length} region configs`);
+    logger.info(`Seeded ${regions.length} regions, ${countries.length} countries, ${cities.length} cities, ${configs.length} region configs, and IP ranges for ${ipRanges.length} countries`);
     
     // Disconnect from database
     await disconnectDB();
     
-    return { regions, countries, cities, configs };
+    return { regions, countries, cities, configs, ipRanges };
   } catch (error) {
     logger.error(`Error seeding database: ${error.message}`);
     

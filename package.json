@@ -14,7 +14,14 @@
     "seed": "NODE_ENV=production node src/scripts/seed.js",
     "seed:dev": "NODE_ENV=development node src/scripts/seed.js",
     "seed:test": "NODE_ENV=test node src/scripts/seed.js",
-    "seed:clear": "node src/scripts/seed.js --clear"
+    "seed:clear": "node src/scripts/seed.js --clear",
+    "seed:ipranges": "node src/scripts/seed.js --only=ipranges",
+    "init-db": "node src/scripts/init-db.js",
+    "init-db:reset": "node src/scripts/init-db.js --reset",
+    "init-db:seed": "node src/scripts/init-db.js --seed",
+    "init-geoip": "node src/scripts/init-geoip.js",
+    "init-geoip:force": "node src/scripts/init-geoip.js --force",
+    "setup": "npm run init-db:seed && npm run init-geoip"
   },
   "keywords": [
     "geolocation",
@@ -37,6 +44,7 @@
     "mongoose": "^6.9.1",
     "morgan": "^1.10.0",
     "swagger-ui-express": "^4.6.0",
+    "unzipper": "^0.12.3",
     "winston": "^3.8.2",
     "winston-daily-rotate-file": "^5.0.0",
     "yamljs": "^0.3.0"

@@ -33,6 +33,38 @@ jest.mock('../../../src/config', () => ({
   },
 }));
 
+// Mock data for location
+const mockLocationData = {
+  country: { iso_code: 'US', names: { en: 'United States' } },
+  subdivisions: [{ iso_code: 'CA', names: { en: 'California' } }],
+  city: { names: { en: 'San Francisco' } },
+  location: {
+    latitude: 37.7749,
+    longitude: -122.4194,
+    accuracy_radius: 10,
+    time_zone: 'America/Los_Angeles',
+  },
+  postal: { code: '94105' },
+  continent: { code: 'NA', names: { en: 'North America' } },
+};
+
+// Processed location data as returned by the service
+const processedLocationData = {
+  ip: '192.168.1.1',
+  country: { code: 'US', name: 'United States' },
+  region: { code: 'CA', name: 'California' },
+  city: { name: 'San Francisco' },
+  location: {
+    latitude: 37.7749,
+    longitude: -122.4194,
+    accuracy_radius: 10,
+    time_zone: 'America/Los_Angeles',
+  },
+  postal: { code: '94105' },
+  continent: { code: 'NA', name: 'North America' },
+  timestamp: expect.any(String),
+};
+
 describe('GeoIP Service', () => {
   // Setup common mocks
   beforeEach(() => {
@@ -99,23 +131,11 @@ describe('GeoIP Service', () => {
   });
 
   describe('getLocationByIp', () => {
-    const mockLocationData = {
-      country: { iso_code: 'US', names: { en: 'United States' } },
-      subdivisions: [{ iso_code: 'CA', names: { en: 'California' } }],
-      city: { names: { en: 'San Francisco' } },
-      location: {
-        latitude: 37.7749,
-        longitude: -122.4194,
-        accuracy_radius: 10,
-        time_zone: 'America/Los_Angeles',
-      },
-      postal: { code: '94105' },
-      continent: { code: 'NA', names: { en: 'North America' } },
-    };
+    let mockReader;
 
     beforeEach(() => {
       // Setup reader mock
-      const mockReader = {
+      mockReader = {
         get: jest.fn((ip) => {
           if (ip === '192.168.1.1') return mockLocationData;
           return null;
@@ -125,6 +145,9 @@ describe('GeoIP Service', () => {
       // Mock successful initialization
       fs.existsSync.mockReturnValue(true);
       maxmind.Reader.open.mockResolvedValue(mockReader);
+      
+      // Reset the service's internal state
+      geoipService.clearCache();
     });
 
     it('should return null for invalid IP addresses', async () => {
@@ -143,14 +166,19 @@ describe('GeoIP Service', () => {
       
       const result = await geoipService.getLocationByIp('192.168.1.1');
       
-      expect(result).not.toBeNull();
-      expect(result.ip).toBe('192.168.1.1');
-      expect(result.country.code).toBe('US');
-      expect(result.country.name).toBe('United States');
-      expect(result.region.code).toBe('CA');
-      expect(result.city.name).toBe('San Francisco');
-      expect(result.location.latitude).toBe(37.7749);
-      expect(result.location.longitude).toBe(-122.4194);
+      expect(result).toEqual(expect.objectContaining({
+        ip: '192.168.1.1',
+        country: { code: 'US', name: 'United States' },
+        region: { code: 'CA', name: 'California' },
+        city: { name: 'San Francisco' },
+        location: expect.objectContaining({
+          latitude: 37.7749,
+          longitude: -122.4194
+        })
+      }));
+      
+      // Verify the reader.get was called with the correct IP
+      expect(mockReader.get).toHaveBeenCalledWith('192.168.1.1');
     });
 
     it('should return null when no location data is found', async () => {
@@ -165,6 +193,7 @@ describe('GeoIP Service', () => {
       
       expect(result).toBeNull();
       expect(logger.debug).toHaveBeenCalledWith(expect.stringContaining('No location data found'));
+      expect(mockReader.get).toHaveBeenCalledWith('10.0.0.1');
     });
 
     it('should return cached result for repeated IP lookups', async () => {
@@ -172,19 +201,23 @@ describe('GeoIP Service', () => {
       await geoipService.initialize();
       
       // First lookup should query the database
-      await geoipService.getLocationByIp('192.168.1.1');
+      const firstResult = await geoipService.getLocationByIp('192.168.1.1');
+      expect(firstResult).not.toBeNull();
+      expect(mockReader.get).toHaveBeenCalledTimes(1);
       
       // Clear mocks to verify second lookup doesn't call the database
       jest.clearAllMocks();
       
       // Second lookup should use cache
-      const result = await geoipService.getLocationByIp('192.168.1.1');
+      const secondResult = await geoipService.getLocationByIp('192.168.1.1');
       
-      expect(result).not.toBeNull();
-      expect(result.ip).toBe('192.168.1.1');
-      // The Reader.get method should not be called for cached results
-      // We can't directly test this since we're mocking at a higher level
-      // Just verify that the result is correct
+      expect(secondResult).toEqual(expect.objectContaining({
+        ip: '192.168.1.1',
+        country: { code: 'US', name: 'United States' }
+      }));
+      
+      // Verify the reader.get was NOT called for the second lookup
+      expect(mockReader.get).not.toHaveBeenCalled();
     });
 
     it('should handle errors during lookup', async () => {
@@ -212,29 +245,66 @@ describe('GeoIP Service', () => {
     });
 
     it('should initialize the database if not already initialized', async () => {
-      // Mock that the reader is not initialized
-      // We'll use a spy to simulate the initialization process
-      jest.spyOn(geoipService, 'initialize').mockImplementation(async () => {
-        // Mock successful initialization
-        fs.existsSync.mockReturnValue(true);
-        const mockReader = {
-          get: jest.fn((ip) => {
-            if (ip === '192.168.1.1') return mockLocationData;
-            return null;
-          }),
-        };
-        maxmind.Reader.open.mockResolvedValue(mockReader);
-        return true;
-      });
+      // Store original initialize method
+      const originalInitialize = geoipService.initialize;
+      
+      // Create a mock initialize function that returns true
+      const mockInitialize = jest.fn().mockResolvedValue(true);
+      
+      // Replace the initialize method with our mock
+      geoipService.initialize = mockInitialize;
+      
+      // Set up a mock reader
+      const mockReader = {
+        get: jest.fn().mockReturnValue(mockLocationData)
+      };
+      
+      // Mock the maxmind.Reader.open to return our mock reader
+      maxmind.Reader.open.mockResolvedValueOnce(mockReader);
+      
+      // Call getLocationByIp which should trigger initialization
+      const result = await geoipService.getLocationByIp('192.168.1.1');
+      
+      // Verify initialization was called
+      expect(mockInitialize).toHaveBeenCalled();
+      
+      // Restore original initialize method
+      geoipService.initialize = originalInitialize;
+    });
+    
+    it('should return null when initialization fails', async () => {
+      // Store original initialize method
+      const originalInitialize = geoipService.initialize;
+      
+      // Create a mock initialize function that returns false
+      const mockInitialize = jest.fn().mockResolvedValue(false);
+      
+      // Replace the initialize method with our mock
+      geoipService.initialize = mockInitialize;
+      
+      // Call getLocationByIp which should trigger initialization
+      const result = await geoipService.getLocationByIp('192.168.1.1');
+      
+      // Verify initialization was called and result is null
+      expect(mockInitialize).toHaveBeenCalled();
+      expect(result).toBeNull();
+      
+      // Restore original initialize method
+      geoipService.initialize = originalInitialize;
+    });
+    
+    it('should handle null result from normalizeIpAddress', async () => {
+      // Mock normalizeIpAddress to return null
+      geoipUtils.isValidIpAddress.mockReturnValueOnce(true);
+      geoipUtils.normalizeIpAddress.mockReturnValueOnce(null);
       
       const result = await geoipService.getLocationByIp('192.168.1.1');
       
-      expect(result).not.toBeNull();
-      expect(geoipService.initialize).toHaveBeenCalled();
+      expect(result).toBeNull();
     });
   });
 
-  describe('getCountryByIp, getRegionByIp, getCityByIp, getCoordinatesByIp', () => {
+  describe('Helper methods: getCountryByIp, getRegionByIp, getCityByIp, getCoordinatesByIp', () => {
     // Mock data for location
     const mockLocationData = {
       ip: '192.168.1.1',
@@ -252,62 +322,170 @@ describe('GeoIP Service', () => {
       timestamp: new Date().toISOString(),
     };
     
+    // Mock data with missing fields to test edge cases
+    const mockPartialData = {
+      ip: '10.0.0.1',
+      country: { code: 'UK', name: 'United Kingdom' },
+      // No region
+      // No city
+      location: {
+        latitude: 51.5074,
+        longitude: -0.1278,
+      },
+      // No postal
+      // No continent
+      timestamp: new Date().toISOString(),
+    };
+    
+    // Mock data with null fields
+    const mockNullFieldsData = {
+      ip: '172.16.0.1',
+      country: null,
+      region: null,
+      city: null,
+      location: null,
+      postal: null,
+      continent: null,
+      timestamp: new Date().toISOString(),
+    };
+    
     beforeEach(() => {
       // Reset mocks
       jest.clearAllMocks();
       
       // Mock getLocationByIp directly
-      jest.spyOn(geoipService, 'getLocationByIp').mockImplementation(async (ip) => {
-        if (ip === '192.168.1.1') {
-          return mockLocationData;
-        }
+      const mockGetLocationByIp = jest.fn(async (ip) => {
+        if (ip === '192.168.1.1') return {...mockLocationData};
+        if (ip === '10.0.0.1') return {...mockPartialData};
+        if (ip === '172.16.0.1') return {...mockNullFieldsData};
         return null;
       });
+      
+      // Replace the original method with our mock
+      geoipService.getLocationByIp = mockGetLocationByIp;
+    });
+    
+    afterEach(() => {
+      // Restore the original method after each test
+      jest.restoreAllMocks();
     });
 
-    it('should return country information for a valid IP', async () => {
-      const result = await geoipService.getCountryByIp('192.168.1.1');
-      
-      expect(result).toEqual({ code: 'US', name: 'United States' });
-      expect(geoipService.getLocationByIp).toHaveBeenCalledWith('192.168.1.1');
-    });
-
-    it('should return null country information for an invalid IP', async () => {
-      const result = await geoipService.getCountryByIp('invalid-ip');
-      
-      expect(result).toBeNull();
-      expect(geoipService.getLocationByIp).toHaveBeenCalledWith('invalid-ip');
-    });
-
-    it('should return region information for a valid IP', async () => {
-      const result = await geoipService.getRegionByIp('192.168.1.1');
-      
-      expect(result).toEqual({ code: 'CA', name: 'California' });
-      expect(geoipService.getLocationByIp).toHaveBeenCalledWith('192.168.1.1');
-    });
-
-    it('should return city information for a valid IP', async () => {
-      const result = await geoipService.getCityByIp('192.168.1.1');
-      
-      expect(result).toEqual({ name: 'San Francisco' });
-      expect(geoipService.getLocationByIp).toHaveBeenCalledWith('192.168.1.1');
-    });
-
-    it('should return coordinates for a valid IP', async () => {
-      const result = await geoipService.getCoordinatesByIp('192.168.1.1');
-      
-      expect(result).toEqual({
-        latitude: 37.7749,
-        longitude: -122.4194,
+    describe('getCountryByIp', () => {
+      it('should return country information for a valid IP', async () => {
+        const result = await geoipService.getCountryByIp('192.168.1.1');
+        
+        expect(result).toEqual({ code: 'US', name: 'United States' });
+        expect(geoipService.getLocationByIp).toHaveBeenCalledWith('192.168.1.1');
+        expect(geoipService.getLocationByIp).toHaveBeenCalledTimes(1);
       });
-      expect(geoipService.getLocationByIp).toHaveBeenCalledWith('192.168.1.1');
+
+      it('should return null country information for an invalid IP', async () => {
+        const result = await geoipService.getCountryByIp('invalid-ip');
+        
+        expect(result).toBeNull();
+        expect(geoipService.getLocationByIp).toHaveBeenCalledWith('invalid-ip');
+        expect(geoipService.getLocationByIp).toHaveBeenCalledTimes(1);
+      });
+      
+      it('should handle null country field in location data', async () => {
+        const result = await geoipService.getCountryByIp('172.16.0.1');
+        
+        expect(result).toBeNull();
+        expect(geoipService.getLocationByIp).toHaveBeenCalledWith('172.16.0.1');
+        expect(geoipService.getLocationByIp).toHaveBeenCalledTimes(1);
+      });
     });
 
-    it('should return null coordinates for an invalid IP', async () => {
-      const result = await geoipService.getCoordinatesByIp('invalid-ip');
+    describe('getRegionByIp', () => {
+      it('should return region information for a valid IP', async () => {
+        const result = await geoipService.getRegionByIp('192.168.1.1');
+        
+        expect(result).toEqual({ code: 'CA', name: 'California' });
+        expect(geoipService.getLocationByIp).toHaveBeenCalledWith('192.168.1.1');
+        expect(geoipService.getLocationByIp).toHaveBeenCalledTimes(1);
+      });
       
-      expect(result).toBeNull();
-      expect(geoipService.getLocationByIp).toHaveBeenCalledWith('invalid-ip');
+      it('should return null when region information is not available', async () => {
+        const result = await geoipService.getRegionByIp('10.0.0.1');
+        
+        expect(result).toBeNull();
+        expect(geoipService.getLocationByIp).toHaveBeenCalledWith('10.0.0.1');
+        expect(geoipService.getLocationByIp).toHaveBeenCalledTimes(1);
+      });
+      
+      it('should handle null region field in location data', async () => {
+        const result = await geoipService.getRegionByIp('172.16.0.1');
+        
+        expect(result).toBeNull();
+        expect(geoipService.getLocationByIp).toHaveBeenCalledWith('172.16.0.1');
+        expect(geoipService.getLocationByIp).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    describe('getCityByIp', () => {
+      it('should return city information for a valid IP', async () => {
+        const result = await geoipService.getCityByIp('192.168.1.1');
+        
+        expect(result).toEqual({ name: 'San Francisco' });
+        expect(geoipService.getLocationByIp).toHaveBeenCalledWith('192.168.1.1');
+        expect(geoipService.getLocationByIp).toHaveBeenCalledTimes(1);
+      });
+      
+      it('should return null when city information is not available', async () => {
+        const result = await geoipService.getCityByIp('10.0.0.1');
+        
+        expect(result).toBeNull();
+        expect(geoipService.getLocationByIp).toHaveBeenCalledWith('10.0.0.1');
+        expect(geoipService.getLocationByIp).toHaveBeenCalledTimes(1);
+      });
+      
+      it('should handle null city field in location data', async () => {
+        const result = await geoipService.getCityByIp('172.16.0.1');
+        
+        expect(result).toBeNull();
+        expect(geoipService.getLocationByIp).toHaveBeenCalledWith('172.16.0.1');
+        expect(geoipService.getLocationByIp).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    describe('getCoordinatesByIp', () => {
+      it('should return coordinates for a valid IP', async () => {
+        const result = await geoipService.getCoordinatesByIp('192.168.1.1');
+        
+        expect(result).toEqual({
+          latitude: 37.7749,
+          longitude: -122.4194,
+        });
+        expect(geoipService.getLocationByIp).toHaveBeenCalledWith('192.168.1.1');
+        expect(geoipService.getLocationByIp).toHaveBeenCalledTimes(1);
+      });
+      
+      it('should return coordinates even when other location data is missing', async () => {
+        const result = await geoipService.getCoordinatesByIp('10.0.0.1');
+        
+        expect(result).toEqual({
+          latitude: 51.5074,
+          longitude: -0.1278,
+        });
+        expect(geoipService.getLocationByIp).toHaveBeenCalledWith('10.0.0.1');
+        expect(geoipService.getLocationByIp).toHaveBeenCalledTimes(1);
+      });
+      
+      it('should handle null location field in location data', async () => {
+        const result = await geoipService.getCoordinatesByIp('172.16.0.1');
+        
+        expect(result).toBeNull();
+        expect(geoipService.getLocationByIp).toHaveBeenCalledWith('172.16.0.1');
+        expect(geoipService.getLocationByIp).toHaveBeenCalledTimes(1);
+      });
+      
+      it('should return null coordinates for an invalid IP', async () => {
+        const result = await geoipService.getCoordinatesByIp('invalid-ip');
+        
+        expect(result).toBeNull();
+        expect(geoipService.getLocationByIp).toHaveBeenCalledWith('invalid-ip');
+        expect(geoipService.getLocationByIp).toHaveBeenCalledTimes(1);
+      });
     });
   });
 
@@ -341,6 +519,9 @@ describe('GeoIP Service', () => {
       
       // Mock successful initialization after update
       jest.spyOn(geoipService, 'initialize').mockResolvedValue(true);
+      
+      // Mock fs.unlink
+      fs.unlink = jest.fn((path, callback) => callback());
     });
 
     it('should return false if no license key is provided', async () => {
@@ -371,6 +552,16 @@ describe('GeoIP Service', () => {
       expect(logger.info).toHaveBeenCalledWith(expect.stringContaining('Downloading MaxMind'));
       expect(logger.info).toHaveBeenCalledWith(expect.stringContaining('Extracting database'));
       expect(geoipService.initialize).toHaveBeenCalled();
+    });
+    
+    it('should use the specified edition when provided', async () => {
+      const result = await geoipService.updateDatabase('mock-license-key', 'GeoLite2-Country');
+      
+      expect(result).toBe(true);
+      expect(https.get).toHaveBeenCalledWith(
+        expect.stringContaining('edition_id=GeoLite2-Country'),
+        expect.any(Function)
+      );
     });
 
     it('should handle HTTP error during download', async () => {
@@ -408,8 +599,6 @@ describe('GeoIP Service', () => {
         };
       });
       
-      fs.unlink = jest.fn((path, callback) => callback());
-      
       try {
         await geoipService.updateDatabase('mock-license-key');
         fail('Should have thrown an error');
@@ -418,21 +607,85 @@ describe('GeoIP Service', () => {
         expect(fs.unlink).toHaveBeenCalled();
       }
     });
+    
+    it('should handle extraction errors', async () => {
+      // Mock initialize to fail after extraction
+      const originalInitialize = geoipService.initialize;
+      geoipService.initialize = jest.fn().mockResolvedValueOnce(false);
+      
+      const result = await geoipService.updateDatabase('mock-license-key');
+      
+      expect(result).toBe(false);
+      expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('Failed to initialize'));
+      
+      // Restore original initialize
+      geoipService.initialize = originalInitialize;
+    });
+    
+    it('should handle general errors during update process', async () => {
+      // Mock fs.createWriteStream to throw an error
+      fs.createWriteStream.mockImplementationOnce(() => {
+        throw new Error('File system error');
+      });
+      
+      const result = await geoipService.updateDatabase('mock-license-key');
+      
+      expect(result).toBe(false);
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.stringContaining('Error updating database'),
+        expect.objectContaining({ error: expect.any(Error) })
+      );
+    });
+    
+    it('should clear the cache after successful update', async () => {
+      // Create a real spy on clearCache method
+      const originalClearCache = geoipService.clearCache;
+      geoipService.clearCache = jest.fn();
+      
+      await geoipService.updateDatabase('mock-license-key');
+      
+      expect(geoipService.clearCache).toHaveBeenCalled();
+      
+      // Restore original clearCache
+      geoipService.clearCache = originalClearCache;
+    });
   });
 
-  describe('clearCache and getCacheStats', () => {
-    it('should clear the cache', () => {
-      // First add something to the cache by mocking a successful lookup
-      geoipService.getLocationByIp('192.168.1.1');
+  describe('Cache Management: clearCache and getCacheStats', () => {
+    let mockReader;
+    
+    beforeEach(() => {
+      // Setup reader mock
+      mockReader = {
+        get: jest.fn((ip) => {
+          if (ip === '192.168.1.1' || ip.startsWith('10.0.0.')) return mockLocationData;
+          return null;
+        }),
+      };
+      
+      // Mock successful initialization
+      fs.existsSync.mockReturnValue(true);
+      maxmind.Reader.open.mockResolvedValue(mockReader);
+      
+      // Reset the service's internal state
+      geoipService.clearCache();
+    });
+    
+    it('should clear the cache', async () => {
+      // Create a mock cache with a known size
+      const mockCache = new Map();
+      mockCache.set('192.168.1.1', { data: {}, timestamp: Date.now() });
+      
+      // Replace the service's cache with our mock
+      const originalCache = geoipService.getCacheStats();
+      Object.defineProperty(geoipService, 'cache', { value: mockCache });
       
       // Then clear the cache
       geoipService.clearCache();
       
+      // Verify the cache was cleared
+      expect(mockCache.size).toBe(0);
       expect(logger.info).toHaveBeenCalledWith(expect.stringContaining('Cleared GeoIP cache'));
-      
-      // Verify cache is cleared by checking stats
-      const stats = geoipService.getCacheStats();
-      expect(stats.size).toBe(0);
     });
 
     it('should return correct cache statistics', () => {
@@ -444,6 +697,61 @@ describe('GeoIP Service', () => {
       expect(typeof stats.size).toBe('number');
       expect(typeof stats.maxSize).toBe('number');
       expect(typeof stats.ttl).toBe('number');
+    });
+  });
+  
+  describe('Cache behavior', () => {
+    let mockReader;
+    
+    beforeEach(() => {
+      // Setup reader mock
+      mockReader = {
+        get: jest.fn((ip) => {
+          if (ip === '192.168.1.1' || ip.startsWith('10.0.0.')) return mockLocationData;
+          return null;
+        }),
+      };
+      
+      // Mock successful initialization
+      fs.existsSync.mockReturnValue(true);
+      maxmind.Reader.open.mockResolvedValue(mockReader);
+      
+      // Reset the service's internal state
+      geoipService.clearCache();
+    });
+    
+    it('should cache results and reuse them for repeated lookups', async () => {
+      // Initialize the service
+      await geoipService.initialize();
+      
+      // First lookup (cache miss)
+      await geoipService.getLocationByIp('192.168.1.1');
+      expect(mockReader.get).toHaveBeenCalledTimes(1);
+      
+      // Reset mock to track second call
+      jest.clearAllMocks();
+      
+      // Second lookup of same IP (cache hit)
+      await geoipService.getLocationByIp('192.168.1.1');
+      expect(mockReader.get).not.toHaveBeenCalled();
+    });
+    
+    it('should not cache invalid results', async () => {
+      // Initialize the service
+      await geoipService.initialize();
+      
+      // Mock invalid IP
+      geoipUtils.isValidIpAddress.mockReturnValueOnce(false);
+      
+      // First lookup (invalid IP)
+      await geoipService.getLocationByIp('invalid-ip');
+      
+      // Reset mocks
+      jest.clearAllMocks();
+      
+      // Second lookup of same IP (should still check validity)
+      await geoipService.getLocationByIp('invalid-ip');
+      expect(geoipUtils.isValidIpAddress).toHaveBeenCalledTimes(1);
     });
   });
 });

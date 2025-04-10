@@ -1,0 +1,279 @@
+[
+  {
+    "countryCode": "US",
+    "ranges": [
+      {
+        "start": "8.8.8.0",
+        "end": "8.8.8.255",
+        "description": "Google DNS (United States)"
+      },
+      {
+        "start": "172.217.0.0",
+        "end": "172.217.255.255",
+        "description": "Google services (United States)"
+      },
+      {
+        "start": "192.30.252.0",
+        "end": "192.30.255.255",
+        "description": "GitHub (United States)"
+      }
+    ],
+    "sampleIPs": ["8.8.8.8", "172.217.12.14", "192.30.253.113"]
+  },
+  {
+    "countryCode": "CA",
+    "ranges": [
+      {
+        "start": "99.226.0.0",
+        "end": "99.226.255.255",
+        "description": "Rogers Cable (Canada)"
+      },
+      {
+        "start": "205.193.0.0",
+        "end": "205.193.255.255",
+        "description": "Bell Canada (Canada)"
+      }
+    ],
+    "sampleIPs": ["99.226.1.100", "205.193.50.50"]
+  },
+  {
+    "countryCode": "MX",
+    "ranges": [
+      {
+        "start": "187.188.0.0",
+        "end": "187.188.255.255",
+        "description": "Telmex (Mexico)"
+      },
+      {
+        "start": "200.76.0.0",
+        "end": "200.76.255.255",
+        "description": "Alestra (Mexico)"
+      }
+    ],
+    "sampleIPs": ["187.188.1.1", "200.76.100.100"]
+  },
+  {
+    "countryCode": "BR",
+    "ranges": [
+      {
+        "start": "177.0.0.0",
+        "end": "177.255.255.255",
+        "description": "Brazil IP range"
+      },
+      {
+        "start": "186.192.0.0",
+        "end": "186.223.255.255",
+        "description": "Brazil Telecom"
+      }
+    ],
+    "sampleIPs": ["177.54.150.15", "186.192.90.5"]
+  },
+  {
+    "countryCode": "AR",
+    "ranges": [
+      {
+        "start": "190.0.0.0",
+        "end": "190.31.255.255",
+        "description": "Argentina IP range"
+      },
+      {
+        "start": "200.5.0.0",
+        "end": "200.5.255.255",
+        "description": "Telecom Argentina"
+      }
+    ],
+    "sampleIPs": ["190.1.1.1", "200.5.100.100"]
+  },
+  {
+    "countryCode": "CO",
+    "ranges": [
+      {
+        "start": "181.48.0.0",
+        "end": "181.63.255.255",
+        "description": "Colombia IP range"
+      },
+      {
+        "start": "200.21.0.0",
+        "end": "200.21.255.255",
+        "description": "ETB Colombia"
+      }
+    ],
+    "sampleIPs": ["181.50.50.50", "200.21.200.200"]
+  },
+  {
+    "countryCode": "GB",
+    "ranges": [
+      {
+        "start": "2.24.0.0",
+        "end": "2.31.255.255",
+        "description": "UK IP range"
+      },
+      {
+        "start": "5.148.0.0",
+        "end": "5.159.255.255",
+        "description": "BT (United Kingdom)"
+      }
+    ],
+    "sampleIPs": ["2.25.100.100", "5.150.150.150"]
+  },
+  {
+    "countryCode": "FR",
+    "ranges": [
+      {
+        "start": "2.0.0.0",
+        "end": "2.15.255.255",
+        "description": "France IP range"
+      },
+      {
+        "start": "5.48.0.0",
+        "end": "5.49.255.255",
+        "description": "Orange (France)"
+      }
+    ],
+    "sampleIPs": ["2.10.10.10", "5.48.48.48"]
+  },
+  {
+    "countryCode": "DE",
+    "ranges": [
+      {
+        "start": "2.16.0.0",
+        "end": "2.23.255.255",
+        "description": "Germany IP range"
+      },
+      {
+        "start": "5.8.0.0",
+        "end": "5.15.255.255",
+        "description": "Deutsche Telekom"
+      }
+    ],
+    "sampleIPs": ["2.20.20.20", "5.10.10.10"]
+  },
+  {
+    "countryCode": "CN",
+    "ranges": [
+      {
+        "start": "1.0.0.0",
+        "end": "1.255.255.255",
+        "description": "China IP range"
+      },
+      {
+        "start": "14.0.0.0",
+        "end": "14.255.255.255",
+        "description": "China Telecom"
+      }
+    ],
+    "sampleIPs": ["1.1.1.1", "14.14.14.14"]
+  },
+  {
+    "countryCode": "JP",
+    "ranges": [
+      {
+        "start": "1.72.0.0",
+        "end": "1.79.255.255",
+        "description": "Japan IP range"
+      },
+      {
+        "start": "14.192.0.0",
+        "end": "14.223.255.255",
+        "description": "NTT (Japan)"
+      }
+    ],
+    "sampleIPs": ["1.75.75.75", "14.200.200.200"]
+  },
+  {
+    "countryCode": "IN",
+    "ranges": [
+      {
+        "start": "1.186.0.0",
+        "end": "1.187.255.255",
+        "description": "India IP range"
+      },
+      {
+        "start": "14.96.0.0",
+        "end": "14.127.255.255",
+        "description": "Bharti Airtel (India)"
+      }
+    ],
+    "sampleIPs": ["1.186.186.186", "14.100.100.100"]
+  },
+  {
+    "countryCode": "ZA",
+    "ranges": [
+      {
+        "start": "41.0.0.0",
+        "end": "41.255.255.255",
+        "description": "South Africa IP range"
+      },
+      {
+        "start": "105.0.0.0",
+        "end": "105.255.255.255",
+        "description": "MTN (South Africa)"
+      }
+    ],
+    "sampleIPs": ["41.41.41.41", "105.105.105.105"]
+  },
+  {
+    "countryCode": "EG",
+    "ranges": [
+      {
+        "start": "41.32.0.0",
+        "end": "41.47.255.255",
+        "description": "Egypt IP range"
+      },
+      {
+        "start": "62.68.0.0",
+        "end": "62.68.255.255",
+        "description": "Telecom Egypt"
+      }
+    ],
+    "sampleIPs": ["41.40.40.40", "62.68.68.68"]
+  },
+  {
+    "countryCode": "NG",
+    "ranges": [
+      {
+        "start": "41.184.0.0",
+        "end": "41.191.255.255",
+        "description": "Nigeria IP range"
+      },
+      {
+        "start": "105.112.0.0",
+        "end": "105.127.255.255",
+        "description": "MTN Nigeria"
+      }
+    ],
+    "sampleIPs": ["41.190.190.190", "105.120.120.120"]
+  },
+  {
+    "countryCode": "AU",
+    "ranges": [
+      {
+        "start": "1.120.0.0",
+        "end": "1.127.255.255",
+        "description": "Australia IP range"
+      },
+      {
+        "start": "14.200.0.0",
+        "end": "14.207.255.255",
+        "description": "Telstra (Australia)"
+      }
+    ],
+    "sampleIPs": ["1.125.125.125", "14.205.205.205"]
+  },
+  {
+    "countryCode": "NZ",
+    "ranges": [
+      {
+        "start": "49.224.0.0",
+        "end": "49.255.255.255",
+        "description": "New Zealand IP range"
+      },
+      {
+        "start": "103.0.0.0",
+        "end": "103.255.255.255",
+        "description": "Spark NZ"
+      }
+    ],
+    "sampleIPs": ["49.230.230.230", "103.10.10.10"]
+  }
+]
