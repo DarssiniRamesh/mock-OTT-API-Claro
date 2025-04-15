@@ -45,3 +45,4 @@ Thumbs.db
 
 # MaxMind GeoIP database files
 *.mmdb
+logs/
